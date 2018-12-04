@@ -5,9 +5,20 @@ from threading import Thread
 import json
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import warnings
+import numpy as np
+from sklearn.externals import joblib
+
+used_features = ['screen_name_binary', 'name_binary', 'description_binary', 'status_binary', 'listed_count_binary',
+                 'verified', 'followers_count', 'friends_count', 'statuses_count']
+bag_of_words_bot = 'bot','b0t'
+
+
+def contains(str):
+    for word in bag_of_words_bot:
+        if word in str.lower():
+            return True
+    return False
+
 
 if __name__ == '__main__':
     consumer_key = 'sLV09OPi3alMMLRk0HRiCu0E7'
@@ -20,11 +31,14 @@ if __name__ == '__main__':
 
     api = tweepy.API(auth)
 
+    final_model = joblib.load("model.sav")
+
 
     class MyListener(StreamListener):
         def on_data(self, data):
             twitt = json.loads(data)
             print(twitt["user"])
+            user = twitt["user"]
             # {'id': 1066252633269256192,
             # 'id_str': '1066252633269256192',
             # 'name': 'Mobile Apps & Games',
@@ -64,6 +78,17 @@ if __name__ == '__main__':
             # 'following': None, pop
             # 'follow_request_sent': None, pop
             # 'notifications': None} pop
+            input_data = pd.DataFrame(np.array([used_features,
+                                                [contains(user["screen_name"]),
+                                                 contains(user["name"]),
+                                                 contains(user["description"]),
+                                                 (user["statuses_count"] > 0),
+                                                 (user["listed_count"] < 20000),
+                                                 user["verified"],
+                                                 user["followers_count"],
+                                                 user["friends_count"],
+                                                 user["statuses_count"]]]))
+            result = final_model.predict(input_data)
             return True
 
         def on_error(self, status):
