@@ -3,9 +3,8 @@ from tweepy import OAuthHandler, Stream
 from tweepy.streaming import StreamListener
 from threading import Thread
 import json
-
+from textblob import TextBlob
 import pandas as pd
-import numpy as np
 from sklearn.externals import joblib
 
 used_features = ['screen_name_binary', 'name_binary', 'description_binary', 'status_binary', 'listed_count_binary',
@@ -52,7 +51,9 @@ if __name__ == '__main__':
                                            user["statuses_count"]]
                 input_data = pd.DataFrame([data])
                 result = final_model.predict(input_data)
-                print("Bot :" + str(result[0]))
+                print("Bot: " + str(result[0]))
+                print("Sentiment: " + str(get_sentiment(twitt["text"])))
+                print()
                 return True
             except Exception as e:
                 print(e)
@@ -65,6 +66,12 @@ if __name__ == '__main__':
     def listen(tags=['#android', "#java", "#kotlin", "#spring",""]):
         twitter_stream = Stream(auth, MyListener())
         twitter_stream.filter(track=tags)
+
+    def get_sentiment(text):
+        textblob = TextBlob(text)
+        if textblob.detect_language() != 'en':
+            textblob = textblob.translate(to="en")
+        return textblob.sentiment
 
 
     thread = Thread(target=listen)
