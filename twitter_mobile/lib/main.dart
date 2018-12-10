@@ -28,7 +28,7 @@ class PhotoListState extends State<PhotoList> {
   @override
   void initState() {
     super.initState();
-    channel = new IOWebSocketChannel.connect("ws://192.168.1.25:1234/svc/websockets");
+    channel = new IOWebSocketChannel.connect("ws://176.38.3.7:8888/ws/");
 
     channel.stream.listen((message) => setState(() => list.add(Twitt.fromJsonMap(message))));
   }
